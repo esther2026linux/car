@@ -97,7 +97,7 @@ fullscreen = 0
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
 android.permissions = INTERNET
-
+android.sdk_build_tools = 34.0.0
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
@@ -452,3 +452,10 @@ warn_on_root = 1
 #
 #buildozer --profile demo android 
 
+debugandroid.api = 33
+android.minapi = 21
+android.sdk = 33
+android.ndk = 25b
+android.ndk_api = 21
+android.build_tools = 33.0.2
+android.sdk_build_tools = 34.0.0
