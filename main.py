@@ -58,19 +58,27 @@ class MessageBubble(MDCard):
 
         self.orientation = "vertical"
         self.padding = dp(12)
+        self.spacing = dp(5)
         self.size_hint_y = None
+        self.adaptive_height = True
+        self.radius = [dp(12), dp(12), dp(12), dp(12)]
 
+        # Responsive width for phone screens
+        self.size_hint_x = None
+        self.width = Window.width * 0.75
+
+        # Bubble color
         self.md_bg_color = get_color_from_hex(
             "#D0E6FF" if is_user else "#F3F3F3"
         )
 
-        self.size_hint_x = 0.8
+        # Alignment
         self.pos_hint = {"right": 0.98} if is_user else {"x": 0.02}
 
         self.label = MDLabel(
             text=text,
             adaptive_height=True,
-            halign="left"
+            halign="left",
         )
 
         self.label.bind(
@@ -83,7 +91,7 @@ class MessageBubble(MDCard):
         Clock.schedule_once(self.update_height)
 
     def update_height(self, *args):
-        self.height = self.label.texture_size[1] + dp(24)
+        self.height = self.label.texture_size[1] + dp(30)
 
     def update_text(self, new_text):
         self.label.text = new_text
@@ -95,22 +103,26 @@ class ChatBotMobileApp(MDApp):
     def build(self):
 
         self.theme_cls.primary_palette = "BlueGray"
+        self.theme_cls.material_style = "M3"
 
         self.ai_manager = AIConversationManager()
 
         screen = MDScreen()
 
-        layout = MDBoxLayout(orientation="vertical")
+        main_layout = MDBoxLayout(orientation="vertical")
 
+        # Top toolbar
         toolbar = MDTopAppBar(
             title="Cardia Vehicle AI",
+            elevation=2,
             right_action_items=[
                 ["delete", lambda x: self.clear_chat()]
             ]
         )
 
-        layout.add_widget(toolbar)
+        main_layout.add_widget(toolbar)
 
+        # Scroll area
         self.scroll = MDScrollView()
 
         self.chat_list = MDBoxLayout(
@@ -126,18 +138,19 @@ class ChatBotMobileApp(MDApp):
 
         self.scroll.add_widget(self.chat_list)
 
-        layout.add_widget(self.scroll)
+        main_layout.add_widget(self.scroll)
 
+        # Input area
         input_box = MDBoxLayout(
-            size_hint_y=None,
-            height=dp(60),
+            adaptive_height=True,
             padding=dp(8),
             spacing=dp(8)
         )
 
         self.text_input = MDTextField(
             hint_text="Describe the vehicle problem...",
-            size_hint_x=0.85
+            mode="rectangle",
+            size_hint_x=1
         )
 
         self.text_input.bind(on_text_validate=self.send_message)
@@ -150,9 +163,9 @@ class ChatBotMobileApp(MDApp):
         input_box.add_widget(self.text_input)
         input_box.add_widget(send_btn)
 
-        layout.add_widget(input_box)
+        main_layout.add_widget(input_box)
 
-        screen.add_widget(layout)
+        screen.add_widget(main_layout)
 
         return screen
 
@@ -207,7 +220,8 @@ class ChatBotMobileApp(MDApp):
 
     def scroll_to_bottom(self):
 
-        self.scroll.scroll_y = 0
+        if self.chat_list.children:
+            self.scroll.scroll_to(self.chat_list.children[0])
 
     def clear_chat(self):
 
@@ -215,7 +229,5 @@ class ChatBotMobileApp(MDApp):
 
 
 if __name__ == "__main__":
-
-    Window.size = (360, 640)
 
     ChatBotMobileApp().run()
