@@ -9,9 +9,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
@@ -21,34 +23,42 @@ jobs:
           sudo apt update
           sudo apt install -y python3-pip zip unzip autoconf libtool pkg-config wget
 
-      - name: Install Buildozer
+      - name: Install Python tools
         run: |
           pip install --upgrade pip
           pip install buildozer "cython<3"
 
-      - name: Install Android SDK cmdline tools
+      - name: Install Android SDK command line tools
         run: |
           mkdir -p $HOME/android-sdk/cmdline-tools
           cd $HOME/android-sdk
+
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip commandlinetools-linux-*.zip
-          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          unzip commandlinetools-linux-11076708_latest.zip
+
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          mv cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/
 
       - name: Accept Android licenses
         run: |
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
 
+      - name: Install required Android packages
+        run: |
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager \
+          "platform-tools" \
+          "platforms;android-33" \
+          "build-tools;34.0.0" \
+          "ndk;25.2.9519653"
+
       - name: Build APK
         env:
           ANDROIDSDK: $HOME/android-sdk
-        run: buildozer android debug
+        run: |
+          buildozer -v android debug
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: kivy-apk
           path: bin/*.apk
-
-
-
-
-          
