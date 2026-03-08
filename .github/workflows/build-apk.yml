@@ -18,32 +18,30 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip zip unzip autoconf libtool pkg-config wget
-
-      - name: Install Python tools
-        run: |
           pip install --upgrade pip
           pip install buildozer "cython<3"
 
-      - name: Install Android SDK command line tools
+      - name: Install Android SDK cmdline tools
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
+          mkdir -p $HOME/android-sdk
           cd $HOME/android-sdk
 
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip commandlinetools-linux-11076708_latest.zip
 
-          mkdir -p $HOME/android-sdk/cmdline-tools/latest
-          mv cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/
+          mkdir -p cmdline-tools
+          mv cmdline-tools cmdline-tools-temp
+          mv cmdline-tools-temp cmdline-tools/latest
 
       - name: Accept Android licenses
         run: |
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
 
-      - name: Install required Android packages
+      - name: Install Android packages
         run: |
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager \
           "platform-tools" \
