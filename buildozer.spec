@@ -121,7 +121,7 @@ android.permissions = INTERNET
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =
-android.ndk_path = /home/ola-fiiniixtech/.buildozer/android/platform/android-ndk-r25b
+#android.ndk_path = /home/ola-fiiniixtech/.buildozer/android/platform/android-ndk-r25b
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
 
@@ -452,9 +452,3 @@ warn_on_root = 1
 #
 #buildozer --profile demo android 
 
-debugandroid.api = 33
-android.minapi = 21
-android.sdk = 33
-android.ndk = 25b
-android.ndk_api = 21
-android.build_tools = 33.0.2
