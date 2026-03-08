@@ -1,5 +1,3 @@
-
-
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
@@ -17,75 +15,40 @@ from kivy.utils import get_color_from_hex
 
 import threading
 import logging
+import requests
 
-# LangChain imports
-try:
-    from langchain_openai import ChatOpenAI
-    from langchain_core.messages import SystemMessage
-    from langchain_core.chat_history import BaseChatMessageHistory
-    from langchain_community.chat_message_histories import ChatMessageHistory
-    from langchain_core.runnables.history import RunnableWithMessageHistory
-    from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-    LANGCHAIN_AVAILABLE = True
-except ImportError:
-    LANGCHAIN_AVAILABLE = False
+
+# YOUR BACKEND API
+SERVER_URL = "https://esther2026linux.pythonanywhere.com/api/chat/"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class AIConversationManager:
-    def __init__(self):
-        self.chat_history = ChatMessageHistory()
-        self.llm = None
-        self.chain = None
-        self._setup_ai()
 
-    def _setup_ai(self):
-        if not LANGCHAIN_AVAILABLE:
-            return
-
-        api_key = "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"
+    def get_response(self, user_input):
 
         try:
-            self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7, api_key=api_key)
+            payload = {"message": user_input}
 
-            prompt = ChatPromptTemplate.from_messages([
-                SystemMessage(content="You are a helpful car diagnostic AI assistant."),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", "{input}")
-            ])
-
-            self.chain = prompt | self.llm
-
-            def get_session_history(session_id: str) -> BaseChatMessageHistory:
-                return self.chat_history
-
-            self.chain_with_history = RunnableWithMessageHistory(
-                self.chain,
-                get_session_history,
-                input_messages_key="input",
-                history_messages_key="history",
+            response = requests.post(
+                SERVER_URL,
+                json=payload,
+                timeout=30
             )
 
-        except Exception as e:
-            logger.error(f"AI Setup Error: {e}")
-            self.llm = None
+            if response.status_code == 200:
+                return response.json().get("response", "Empty response from server")
 
-    def get_response(self, user_input: str) -> str:
-        if not self.llm:
-            return "AI not configured."
+            return f"Server error {response.status_code}"
 
-        try:
-            response = self.chain_with_history.invoke(
-                {"input": user_input},
-                config={"configurable": {"session_id": "mobile"}},
-            )
-            return response.content
+        except requests.exceptions.ConnectionError:
+            return "Cannot connect to server."
 
         except Exception as e:
-            logger.error(f"AI Response Error: {e}")
-            return "Error contacting AI."
+            logger.error(e)
+            return "Error contacting server."
 
 
 class MessageBubble(MDCard):
@@ -97,7 +60,9 @@ class MessageBubble(MDCard):
         self.padding = dp(12)
         self.size_hint_y = None
 
-        self.md_bg_color = get_color_from_hex("#E8F5E9" if is_user else "#F3F3F3")
+        self.md_bg_color = get_color_from_hex(
+            "#D0E6FF" if is_user else "#F3F3F3"
+        )
 
         self.size_hint_x = 0.8
         self.pos_hint = {"right": 0.98} if is_user else {"x": 0.02}
@@ -105,11 +70,12 @@ class MessageBubble(MDCard):
         self.label = MDLabel(
             text=text,
             adaptive_height=True,
-            halign="left",
+            halign="left"
         )
 
         self.label.bind(
-            width=lambda *x: self.label.setter("text_size")(self.label, (self.label.width, None))
+            width=lambda *x:
+            self.label.setter("text_size")(self.label, (self.label.width, None))
         )
 
         self.add_widget(self.label)
@@ -129,6 +95,7 @@ class ChatBotMobileApp(MDApp):
     def build(self):
 
         self.theme_cls.primary_palette = "BlueGray"
+
         self.ai_manager = AIConversationManager()
 
         screen = MDScreen()
@@ -136,8 +103,10 @@ class ChatBotMobileApp(MDApp):
         layout = MDBoxLayout(orientation="vertical")
 
         toolbar = MDTopAppBar(
-            title="Vehicle Diagnosis ChatBot",
-            elevation=10
+            title="Cardia Vehicle AI",
+            right_action_items=[
+                ["delete", lambda x: self.clear_chat()]
+            ]
         )
 
         layout.add_widget(toolbar)
@@ -151,7 +120,9 @@ class ChatBotMobileApp(MDApp):
             size_hint_y=None
         )
 
-        self.chat_list.bind(minimum_height=self.chat_list.setter("height"))
+        self.chat_list.bind(
+            minimum_height=self.chat_list.setter("height")
+        )
 
         self.scroll.add_widget(self.chat_list)
 
@@ -165,7 +136,7 @@ class ChatBotMobileApp(MDApp):
         )
 
         self.text_input = MDTextField(
-            hint_text="Describe the car problem...",
+            hint_text="Describe the vehicle problem...",
             size_hint_x=0.85
         )
 
@@ -208,7 +179,9 @@ class ChatBotMobileApp(MDApp):
 
         response = self.ai_manager.get_response(text)
 
-        Clock.schedule_once(lambda dt: self.update_bubble(bubble, response))
+        Clock.schedule_once(
+            lambda dt: self.update_bubble(bubble, response)
+        )
 
     def add_bubble(self, text, is_user):
 
@@ -216,7 +189,10 @@ class ChatBotMobileApp(MDApp):
 
         self.chat_list.add_widget(bubble)
 
-        Clock.schedule_once(lambda dt: self.scroll_to_bottom(), 0.1)
+        Clock.schedule_once(
+            lambda dt: self.scroll_to_bottom(),
+            0.1
+        )
 
         return bubble
 
@@ -224,11 +200,18 @@ class ChatBotMobileApp(MDApp):
 
         bubble.update_text(text)
 
-        Clock.schedule_once(lambda dt: self.scroll_to_bottom(), 0.1)
+        Clock.schedule_once(
+            lambda dt: self.scroll_to_bottom(),
+            0.1
+        )
 
     def scroll_to_bottom(self):
 
         self.scroll.scroll_y = 0
+
+    def clear_chat(self):
+
+        self.chat_list.clear_widgets()
 
 
 if __name__ == "__main__":
