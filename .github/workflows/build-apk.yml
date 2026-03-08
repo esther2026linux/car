@@ -27,15 +27,14 @@ jobs:
 
       - name: Install Android SDK cmdline tools
         run: |
-          mkdir -p $HOME/android-sdk
-          cd $HOME/android-sdk
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          cd $HOME/android-sdk/cmdline-tools/latest
 
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip commandlinetools-linux-11076708_latest.zip
 
-          mkdir -p cmdline-tools
-          mv cmdline-tools cmdline-tools-temp
-          mv cmdline-tools-temp cmdline-tools/latest
+          mv cmdline-tools/* .
+          rm -rf cmdline-tools commandlinetools-linux-11076708_latest.zip
 
       - name: Accept Android licenses
         run: |
