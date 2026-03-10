@@ -113,7 +113,7 @@ class ChatBotMobileApp(MDApp):
 
         # Top toolbar
         toolbar = MDTopAppBar(
-            title="Cardia Vehicle AI",
+            title="car diagnosis chat-bot",
             elevation=2,
             right_action_items=[
                 ["delete", lambda x: self.clear_chat()]
@@ -231,3 +231,4 @@ class ChatBotMobileApp(MDApp):
 if __name__ == "__main__":
 
     ChatBotMobileApp().run()
+
